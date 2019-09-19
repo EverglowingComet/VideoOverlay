@@ -121,7 +121,24 @@ class ViewController: UIViewController {
         let mutableVideoComposition : AVMutableVideoComposition = AVMutableVideoComposition()
         mutableVideoComposition.frameDuration = CMTimeMake(value: 1, timescale: 30)
         
-        mutableVideoComposition.renderSize = CGSize(width: 1920,height: 1080)
+        mutableVideoComposition.renderSize = CGSize(width: 1080,height: 1920)
+        
+        let instruction = AVMutableVideoCompositionInstruction()
+        
+        instruction.timeRange = CMTimeRangeMake(start: CMTime.zero, duration: CMTimeMakeWithSeconds(180, preferredTimescale: 30))
+        
+        // rotate to portrait
+        let transformer = layerInstructionAfterFixingOrientationForAsset(inAsset: aVideoAsset, forTrack: mutableCompositionVideoTrack[0], atTime: CMTime.zero)
+        /*let transformer:AVMutableVideoCompositionLayerInstruction = AVMutableVideoCompositionLayerInstruction(assetTrack: mutableCompositionVideoTrack[0])
+        let t1 = CGAffineTransform(translationX: 0, y: 0);
+        let t2 = t1.rotated(by: CGFloat(Double.pi / 2))
+        
+        transformer.setTransform(t2, at: CMTime.zero)*/
+        instruction.layerInstructions = [transformer]
+        
+        mutableVideoComposition.instructions = [instruction]
+        
+        
         
         //        playerItem = AVPlayerItem(asset: mixComposition)
         //        player = AVPlayer(playerItem: playerItem!)
@@ -137,6 +154,8 @@ class ViewController: UIViewController {
         assetExport.outputFileType = AVFileType.mp4
         assetExport.outputURL = savePathUrl
         assetExport.shouldOptimizeForNetworkUse = true
+        assetExport.videoComposition = mutableVideoComposition
+        
         
         assetExport.exportAsynchronously { () -> Void in
             switch assetExport.status {
@@ -160,7 +179,53 @@ class ViewController: UIViewController {
             }
         }
         
+    }
+    
+    func layerInstructionAfterFixingOrientationForAsset(inAsset: AVAsset, forTrack inTrack: AVMutableCompositionTrack, atTime inTime: CMTime) -> AVMutableVideoCompositionLayerInstruction {
+        let videolayerInstruction = AVMutableVideoCompositionLayerInstruction(assetTrack: inTrack)
+        let videoAssetTrack = inAsset.tracks(withMediaType: AVMediaType.video)[0]
         
+        var videoAssetOrientation_ = UIImage.Orientation.up
+        var isVideoAssetPortrait_ = false;
+        
+        let videoTransform = videoAssetTrack.preferredTransform
+        
+        if(videoTransform.a == 0 && videoTransform.b == 1.0 && videoTransform.c == -1.0 && videoTransform.d == 0)  {
+            videoAssetOrientation_ = UIImage.Orientation.right;
+            isVideoAssetPortrait_ = true;
+            
+        }
+        if(videoTransform.a == 0 && videoTransform.b == -1.0 && videoTransform.c == 1.0 && videoTransform.d == 0) {
+            
+            videoAssetOrientation_ = UIImage.Orientation.left;
+            isVideoAssetPortrait_ = true;
+        }
+        if(videoTransform.a == 1.0 && videoTransform.b == 0 && videoTransform.c == 0 && videoTransform.d == 1.0)   {
+            videoAssetOrientation_ = UIImage.Orientation.up;
+            
+        }
+        if(videoTransform.a == -1.0 && videoTransform.b == 0 && videoTransform.c == 0 && videoTransform.d == -1.0) {
+            videoAssetOrientation_ = UIImage.Orientation.down;
+            
+        }
+        //videoAssetOrientation_ = UIImage.Orientation.down;
+        var FirstAssetScaleToFitRatio : CGFloat = 1 //1920.0 / videoAssetTrack.naturalSize.width;
+        
+        if(isVideoAssetPortrait_) {
+            FirstAssetScaleToFitRatio = 1080.0 / videoAssetTrack.naturalSize.height
+            let FirstAssetScaleFactor = CGAffineTransform(scaleX: FirstAssetScaleToFitRatio,y: FirstAssetScaleToFitRatio);
+            videolayerInstruction.setTransform(videoAssetTrack.preferredTransform.concatenating(FirstAssetScaleFactor), at: CMTime.zero)
+        }else{
+            let FirstAssetScaleFactor = CGAffineTransform(scaleX: FirstAssetScaleToFitRatio,y: FirstAssetScaleToFitRatio)
+            let dx : CGFloat = (1920 - 1080) / 4
+            videolayerInstruction.setTransform(
+                videoAssetTrack.preferredTransform.concatenating(FirstAssetScaleFactor)
+                    .concatenating(CGAffineTransform(rotationAngle: CGFloat(Double.pi / 2)))
+                    .concatenating(CGAffineTransform(translationX: 1080, y: 0))
+                    , at: CMTime.zero)
+        }
+        videolayerInstruction.setOpacity(1, at: inTime)
+        return videolayerInstruction;
     }
 }
 
