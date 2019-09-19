@@ -15,10 +15,11 @@ final class OverlayRenderer {
     
     var strength = 0.5
     
-    var background : UIImage
+    //var background : UIImage
     
     let back_reader: VideoSeqReader
     let front_reader: VideoSeqReader
+    let out_reader: VideoSeqReader
     
     var backLayout : DBVideoLayout
     var frontLayout : DBVideoLayout
@@ -43,9 +44,11 @@ final class OverlayRenderer {
     var commandQueue: MTLCommandQueue
     var computePipelineState: MTLComputePipelineState
     
-    init(asset: AVAsset, asset1: AVAsset, layout1: DBVideoLayout, layout2 : DBVideoLayout, videoSize: CGSize) {
+    
+    init(asset: AVAsset, asset1: AVAsset, asset2: AVAsset, layout1: DBVideoLayout, layout2 : DBVideoLayout, videoSize: CGSize) {
         back_reader = VideoSeqReader(asset: asset)
         front_reader = VideoSeqReader(asset: asset1)
+        out_reader = VideoSeqReader(asset: asset2)
         
         back_duration = asset.duration
         front_duration = asset1.duration
@@ -81,14 +84,6 @@ final class OverlayRenderer {
             textureCache = textCache
         }
         
-        guard let url1 = Bundle.main.url(forResource: "background", withExtension: "png") else {
-            print("Impossible to find the background.")
-            background = UIImage(named: "background")!
-            return
-        }
-        
-        background = UIImage(contentsOfFile: url1.path)!
-        
     }
     
     public func initFunction() {
@@ -98,14 +93,14 @@ final class OverlayRenderer {
     func next() -> (CVPixelBuffer, CMTime)? {
         let duration = min(back_duration.seconds, front_duration.seconds)
         
-        if let frame = back_reader.next(), let frame1 = front_reader.next() {
+        if let frame = back_reader.next(), let frame1 = front_reader.next(), let frame3 = out_reader.next() {
             
             let frameRate = back_reader.nominalFrameRate
             presentationTime = CMTimeMake(value: Int64(frameCount * 600), timescale: Int32(600 * frameRate))
             //let image = frame.filterWith(filters: filters)
             let progress = transtionSecondes / duration
             
-            if let targetTexture = render(pixelBuffer: frame, pixelBuffer2: frame1, progress: Float(progress)) {
+            if let targetTexture = render(pixelBuffer: frame, pixelBuffer2: frame1, pixelBuffer3: frame3, progress: Float(progress)) {
                 var outPixelbuffer: CVPixelBuffer?
                 if let datas = targetTexture.buffer?.contents() {
                     CVPixelBufferCreateWithBytes(kCFAllocatorDefault, targetTexture.width,
@@ -131,7 +126,7 @@ final class OverlayRenderer {
         
     }
     
-    public func render(pixelBuffer: CVPixelBuffer, pixelBuffer2: CVPixelBuffer, progress: Float) -> MTLTexture? {
+    public func render(pixelBuffer: CVPixelBuffer, pixelBuffer2: CVPixelBuffer, pixelBuffer3: CVPixelBuffer, progress: Float) -> MTLTexture? {
         // here the metal code
         // Check if the pixel buffer exists
         
@@ -155,40 +150,25 @@ final class OverlayRenderer {
         
         // Converts the pixel buffer in a Metal texture.
         var cvTextureOut1: CVMetalTexture?
+        
         CVMetalTextureCacheCreateTextureFromImage(kCFAllocatorDefault, self.textureCache!, pixelBuffer2, nil, .bgra8Unorm, width1, height1, 0, &cvTextureOut1)
         guard let cvTexture1 = cvTextureOut1, let inputTexture1 = CVMetalTextureGetTexture(cvTexture1) else {
-            print("Failed to create metal texture")
+            print("Failed to create metal texture 1")
             return nil
         }
         
-        /*var pixelBuffer_output: CVPixelBuffer?
+        let width2 = CVPixelBufferGetWidth(pixelBuffer3)
+        let height2 = CVPixelBufferGetHeight(pixelBuffer3)
         
-        let attrs_output = [kCVPixelBufferCGImageCompatibilityKey: kCFBooleanTrue,
-                     kCVPixelBufferCGBitmapContextCompatibilityKey: kCFBooleanTrue,
-                     kCVPixelBufferMetalCompatibilityKey: kCFBooleanTrue]
+        // Converts the pixel buffer in a Metal texture.
+        var cvTextureOut2: CVMetalTexture?
         
-        var status_output = CVPixelBufferCreate(nil, Int(background.size.width), Int(background.size.height),
-                                         kCVPixelFormatType_32BGRA, attrs_output as CFDictionary,
-                                         &pixelBuffer_output)
-        assert(status_output == noErr)
-        
-        let coreImage_output = CIImage(image: background)!
-        let context_output = CIContext(mtlDevice: MTLCreateSystemDefaultDevice()!)
-        context_output.render(coreImage_output, to: pixelBuffer_output!)
-        
-        var textureWrapper_output: CVMetalTexture?
-        
-        let wi = CVPixelBufferGetWidth(pixelBuffer_output!)
-        let he = CVPixelBufferGetHeight(pixelBuffer_output!)
-        
-        status_output = CVMetalTextureCacheCreateTextureFromImage(kCFAllocatorDefault,
-                                                           self.textureCache!, pixelBuffer_output!, nil, .bgra8Unorm,
-                                                           CVPixelBufferGetWidth(pixelBuffer_output!), CVPixelBufferGetHeight(pixelBuffer_output!), 0, &textureWrapper_output)
-        
-        guard let cvTexture_output = textureWrapper_output , let inputTexture_output = CVMetalTextureGetTexture(cvTexture_output) else {
-            print("Failed to create metal texture sample")
+        CVMetalTextureCacheCreateTextureFromImage(kCFAllocatorDefault, self.textureCache!, pixelBuffer3, nil, .bgra8Unorm, width2, height2, 0, &cvTextureOut2)
+        guard let cvTexture2 = cvTextureOut2, let inputTexture2 = CVMetalTextureGetTexture(cvTexture2) else {
+            print("Failed to create metal texture 2")
             return nil
-        }*/
+        }
+        
         
         // Check if Core Animation provided a drawable.
         
@@ -202,10 +182,9 @@ final class OverlayRenderer {
         computeCommandEncoder!.setComputePipelineState(computePipelineState)
         
         // Set the input and output textures for the compute shader.
-        computeCommandEncoder!.setTexture(inputTexture, index: 0)
-        computeCommandEncoder!.setTexture(inputTexture, index: 1)
-        computeCommandEncoder!.setTexture(inputTexture1, index: 2)
-        computeCommandEncoder!.setTexture(inputTexture, index: 3)
+        computeCommandEncoder!.setTexture(inputTexture2, index: 0)
+        computeCommandEncoder!.setTexture(inputTexture1, index: 1)
+        computeCommandEncoder!.setTexture(inputTexture, index: 2)
         
         
         let threadGroupCount = MTLSizeMake(8, 8, 1)
@@ -276,6 +255,68 @@ final class OverlayRenderer {
         commandBuffer!.waitUntilCompleted()
         
         return inputTexture
+    }
+    
+    func copyBuffer(pixelBuffer: CVPixelBuffer) -> CVPixelBuffer? {
+        return autoreleasepool(invoking: {() -> CVPixelBuffer? in
+            
+            let bufferHeight = Int(CVPixelBufferGetHeight(pixelBuffer));
+            let bytesPerRow = CVPixelBufferGetBytesPerRow(pixelBuffer);
+            
+            var pixelBuffer1: CVPixelBuffer?
+            
+            let attrs = [kCVPixelBufferCGImageCompatibilityKey: kCFBooleanTrue,
+                         kCVPixelBufferCGBitmapContextCompatibilityKey: kCFBooleanTrue,
+                         kCVPixelBufferMetalCompatibilityKey: kCFBooleanTrue]
+            
+            var status = CVPixelBufferCreate(nil, 1920, 1080,
+                                             kCVPixelFormatType_32BGRA, attrs as CFDictionary,
+                                             &pixelBuffer1)
+            guard let result = pixelBuffer1 else {
+                print("copy buffer failed")
+                return nil
+            }
+            
+            memcpy(CVPixelBufferGetBaseAddress(pixelBuffer1!), CVPixelBufferGetBaseAddress(pixelBuffer), bufferHeight * bytesPerRow)
+            
+            return pixelBuffer1
+        })
+        
+    }
+    
+    func getEmptyTexture() -> MTLTexture? {
+        return autoreleasepool(invoking: {() -> MTLTexture? in
+            
+            let background = UIImage(named: "background")!
+            
+            var pixelBuffer: CVPixelBuffer?
+            
+            let attrs = [kCVPixelBufferCGImageCompatibilityKey: kCFBooleanTrue,
+                         kCVPixelBufferCGBitmapContextCompatibilityKey: kCFBooleanTrue,
+                         kCVPixelBufferMetalCompatibilityKey: kCFBooleanTrue]
+            
+            var status = CVPixelBufferCreate(nil, Int(background.size.width), Int(background.size.height),
+                                             kCVPixelFormatType_32BGRA, attrs as CFDictionary,
+                                             &pixelBuffer)
+            assert(status == noErr)
+            
+            let coreImage = CIImage(image: background)!
+            let context = CIContext(mtlDevice: MTLCreateSystemDefaultDevice()!)
+            context.render(coreImage, to: pixelBuffer!)
+            
+            var textureWrapper: CVMetalTexture?
+            
+            status = CVMetalTextureCacheCreateTextureFromImage(kCFAllocatorDefault,
+                                                               self.textureCache!, pixelBuffer!, nil, .bgra8Unorm,
+                                                               CVPixelBufferGetWidth(pixelBuffer!), CVPixelBufferGetHeight(pixelBuffer!), 0, &textureWrapper)
+            
+            guard let cvTexture3 = textureWrapper , let inputTexture3 = CVMetalTextureGetTexture(cvTexture3) else {
+                print("Failed to create metal texture sample")
+                return nil
+            }
+            
+            return inputTexture3
+        })
     }
     
     

@@ -39,11 +39,11 @@ class VideoMerger {
     func startRendering() {
         let videoSize = CGSize(width: video_width, height: video_height)
         var transition : OverlayRenderer
-        transition = OverlayRenderer(asset: AVAsset(url: backURL), asset1: AVAsset(url: frontURL), layout1: backLayout, layout2: frontLayout, videoSize: videoSize)
+        transition = OverlayRenderer(asset: AVAsset(url: backURL), asset1: AVAsset(url: frontURL), asset2: AVAsset(url: backURL), layout1: backLayout, layout2: frontLayout, videoSize: videoSize)
         
         transition.transtionSecondes = transtionSecondes
         
-        let writer : VideoSeqWriter = VideoSeqWriter(outputFileURL: exportURL, render: transition, videoSize: videoSize)
+        let writer : VideoSeqWriter = VideoSeqWriter(outputFileURL: exportURL, audioURL: frontURL, render: transition, videoSize: videoSize)
         
         writer.startRender(vc: callback, url: exportURL)
     }

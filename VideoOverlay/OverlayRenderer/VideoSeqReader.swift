@@ -36,13 +36,17 @@ final class VideoSeqReader {
     }
     
     func next() -> CVPixelBuffer? {
+        return autoreleasepool(invoking: {() -> CVPixelBuffer? in
+            
+            if let sb = videoOutput.copyNextSampleBuffer() {
+                let pxbuffer = CMSampleBufferGetImageBuffer(sb)
+                
+                return pxbuffer
+            }
+            
+            return nil
+        })
         
-        if let sb = videoOutput.copyNextSampleBuffer() {
-            let pxbuffer = CMSampleBufferGetImageBuffer(sb)
-            return pxbuffer
-        }
-        
-        return nil
     }
     
 }

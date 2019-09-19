@@ -15,13 +15,14 @@ final class VideoSeqWriter {
     let ciContext : CIContext
     let writer : AVAssetWriter
     
-    class func setupWriter(outputFileURL: URL) -> AVAssetWriter {
+    class func setupWriter(outputFileURL: URL, videoTmpURL: URL) -> AVAssetWriter {
         let fileManager = FileManager.default
         
         let outputFileExists = fileManager.fileExists(atPath: outputFileURL.path)
         if outputFileExists {
             do {
                 try fileManager.removeItem(at: outputFileURL)
+                try fileManager.removeItem(at: videoTmpURL)
                 print("removed item", outputFileURL)
                 
             } catch {
@@ -30,7 +31,7 @@ final class VideoSeqWriter {
         }
         
         var error : NSError?
-        let writer = try! AVAssetWriter(outputURL: outputFileURL, fileType: AVFileType.mp4)
+        let writer = try! AVAssetWriter(outputURL: videoTmpURL, fileType: AVFileType.mp4)
         assert(error == nil, "init video writer should not failed: \(error)")
         
         return writer
@@ -66,16 +67,29 @@ final class VideoSeqWriter {
     var writerInputAdapater: AVAssetWriterInputPixelBufferAdaptor!
     
     let render: OverlayRenderer
+    let exportURL: URL
+    let audioVideoURL: URL
+    let videoOutURL: URL
     
     // create an YMVideoWriter will remove the file specified at outputFileURL if the file exists
-    init(outputFileURL: URL, render: OverlayRenderer, videoSize: CGSize) {
+    init(outputFileURL: URL, audioURL: URL, render: OverlayRenderer, videoSize: CGSize) {
         
         self.render = render
         self.videoSize = videoSize
         
+        exportURL = outputFileURL
+        audioVideoURL = audioURL
+        
+        let dirPaths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
+        
+        let docsURL = dirPaths[0]
+        
+        let path = docsURL.path.appending("/tmp_audio.mp4")
+        videoOutURL = URL.init(fileURLWithPath: path)
+        
         glContext = EAGLContext(api: .openGLES2)!
         ciContext = CIContext(eaglContext: glContext)
-        writer = VideoSeqWriter.setupWriter(outputFileURL: outputFileURL)
+        writer = VideoSeqWriter.setupWriter(outputFileURL: exportURL, videoTmpURL: videoOutURL)
         
         videoInput = AVAssetWriterInput(mediaType: AVMediaType.video, outputSettings: videoOutputSettings)
         writer.add(videoInput)
@@ -118,7 +132,8 @@ final class VideoSeqWriter {
                 } else {
                     self.finishWriting(completion: { () -> () in
                         print("finish writing")
-                        vc.openPreviewScreen(url)
+                        //vc.openPreviewScreen(url)
+                        vc.appendAudio(audioURL: self.audioVideoURL, videoURL: self.videoOutURL, exportURL: self.exportURL)
                     })
                     break
                 }

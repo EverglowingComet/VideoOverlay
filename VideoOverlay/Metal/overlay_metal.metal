@@ -15,8 +15,12 @@ using namespace metal;
 
 float4 getPoint(uint2 ngid, texture2d<float, access::read> inTexture, float width, float height, float o_x, float o_y) {
     
-    uint x = (ngid.x - (o_x - width / 2)) * (inTexture.get_width() / width);
-    uint y = (ngid.y - (o_y - height / 2)) * (inTexture.get_height() / height);
+    float ratio_w = inTexture.get_width() / width;
+    float ratio_h = inTexture.get_height() / height;
+    float ratio = ratio_w > ratio_h ? ratio_w : ratio_h;
+    
+    uint x = (ngid.x - (o_x - width / 2)) * ratio + ratio == ratio_w ? 0 : (inTexture.get_width() / ratio - width) / 2;
+    uint y = (ngid.y - (o_y - height / 2)) * ratio + ratio == ratio_h ? 0 : (inTexture.get_height() / ratio - height) / 2;
     
     return inTexture.read(uint2(x, y));
 }
@@ -72,10 +76,9 @@ bool isInRegionStroke(uint2 uv, float2 center, float width, float height, float 
     return !isInRegion(uv, center, width, height, cornerRadius) && isInRegion(uv, center, width + 2 * stroke_width, height + 2 * stroke_width, cornerRadius + stroke_width);
 }
 
-kernel void produce_frame(texture2d<float, access::read> background_texture [[ texture(0) ]],
-                                    texture2d<float, access::read> back_Texture [[ texture(1) ]],
-                                    texture2d<float, access::read> front_Texture [[ texture(2) ]],
-                                    texture2d<float, access::write> outTexture [[ texture(3) ]],
+kernel void produce_frame(texture2d<float, access::read> back_Texture [[ texture(0) ]],
+                                    texture2d<float, access::read> front_Texture [[ texture(1) ]],
+                                    texture2d<float, access::write> outTexture [[ texture(2) ]],
                                     device const float *progress [[ buffer(0) ]],
                                     device const float *borderColor_r [[ buffer(1) ]],
                                     device const float *borderColor_g [[ buffer(2) ]],
