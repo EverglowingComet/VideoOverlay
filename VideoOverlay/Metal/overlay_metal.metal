@@ -17,10 +17,10 @@ float4 getPoint(uint2 ngid, texture2d<float, access::read> inTexture, float widt
     
     float ratio_w = inTexture.get_width() / width;
     float ratio_h = inTexture.get_height() / height;
-    float ratio = ratio_w > ratio_h ? ratio_w : ratio_h;
+    float ratio = ratio_w < ratio_h ? ratio_w : ratio_h;
     
-    uint x = (ngid.x - (o_x - width / 2)) * ratio + ratio == ratio_w ? 0 : (inTexture.get_width() / ratio - width) / 2;
-    uint y = (ngid.y - (o_y - height / 2)) * ratio + ratio == ratio_h ? 0 : (inTexture.get_height() / ratio - height) / 2;
+    uint x = (ngid.x - (o_x - width / 2)) * ratio /*+ ratio == ratio_w ? 0 : (inTexture.get_width() / ratio - width) / 2*/;
+    uint y = (ngid.y - (o_y - height / 2)) * ratio /*+ ratio == ratio_h ? 0 : (inTexture.get_height() / ratio - height) / 2*/;
     
     return inTexture.read(uint2(x, y));
 }
