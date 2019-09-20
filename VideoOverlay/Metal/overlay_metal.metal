@@ -47,14 +47,14 @@ bool isInRegion(uint2 uv, float2 center, float width, float height, float corner
         float2 circle1 = float2(center.x, center.y + r_height);
         float2 circle2 = float2(center.x, center.y - r_height);
         return isInCircle(uv, circle1, cornerRadius) ||
-               isInCircle(uv, circle2, cornerRadius) ||
+        isInCircle(uv, circle2, cornerRadius) ||
         isInRectangle(uv, center, width, 2 * r_height);
     } else if (cornerRadius > height / 2) {
         float r_width = width / 2 - cornerRadius;
         float2 circle1 = float2(center.x + r_width, center.y);
         float2 circle2 = float2(center.x - r_width, center.y);
         return isInCircle(uv, circle1, cornerRadius) ||
-               isInCircle(uv, circle2, cornerRadius) ||
+        isInCircle(uv, circle2, cornerRadius) ||
         isInRectangle(uv, center, 2 * r_width, height);
     } else {
         float r_width = width / 2 - cornerRadius;
@@ -64,10 +64,10 @@ bool isInRegion(uint2 uv, float2 center, float width, float height, float corner
         float2 circle3 = float2(center.x - r_width, center.y + r_height);
         float2 circle4 = float2(center.x - r_width, center.y - r_height);
         return isInCircle(uv, circle1, cornerRadius) ||
-               isInCircle(uv, circle2, cornerRadius) ||
-               isInCircle(uv, circle3, cornerRadius) ||
-               isInCircle(uv, circle4, cornerRadius) ||
-               isInRectangle(uv, center, 2 * r_width, height) ||
+        isInCircle(uv, circle2, cornerRadius) ||
+        isInCircle(uv, circle3, cornerRadius) ||
+        isInCircle(uv, circle4, cornerRadius) ||
+        isInRectangle(uv, center, 2 * r_width, height) ||
         isInRectangle(uv, center, width, 2 * r_height);
     }
 }
@@ -77,30 +77,34 @@ bool isInRegionStroke(uint2 uv, float2 center, float width, float height, float 
 }
 
 kernel void produce_frame(texture2d<float, access::read> back_Texture [[ texture(0) ]],
-                                    texture2d<float, access::read> front_Texture [[ texture(1) ]],
-                                    texture2d<float, access::write> outTexture [[ texture(2) ]],
-                                    device const float *progress [[ buffer(0) ]],
-                                    device const float *borderColor_r [[ buffer(1) ]],
-                                    device const float *borderColor_g [[ buffer(2) ]],
-                                    device const float *borderColor_b [[ buffer(3) ]],
-                                    device const float *borderColor_a [[ buffer(4) ]],
-                                    device const float *borderWidth [[ buffer(5) ]],
-                                    device const float *cornerRadius [[ buffer(6) ]],
-                                    device const float *originX [[ buffer(7) ]],
-                                    device const float *originY [[ buffer(8) ]],
-                                    device const float *l_width [[ buffer(9) ]],
-                                    device const float *l_height [[ buffer(10) ]],
-                                    device const float *borderColor_r1 [[ buffer(11) ]],
-                                    device const float *borderColor_g1 [[ buffer(12) ]],
-                                    device const float *borderColor_b1 [[ buffer(13) ]],
-                                    device const float *borderColor_a1 [[ buffer(14) ]],
-                                    device const float *borderWidth1 [[ buffer(15) ]],
-                                    device const float *cornerRadius1 [[ buffer(16) ]],
-                                    device const float *originX1 [[ buffer(17) ]],
-                                    device const float *originY1 [[ buffer(18) ]],
-                                    device const float *l_width1 [[ buffer(19) ]],
-                                    device const float *l_height1 [[ buffer(20) ]],
-                                    uint2 gid [[ thread_position_in_grid ]])
+                          texture2d<float, access::read> front_Texture [[ texture(1) ]],
+                          texture2d<float, access::write> outTexture [[ texture(2) ]],
+                          device const float *progress [[ buffer(0) ]],
+                          device const float *borderColor_r [[ buffer(1) ]],
+                          device const float *borderColor_g [[ buffer(2) ]],
+                          device const float *borderColor_b [[ buffer(3) ]],
+                          device const float *borderColor_a [[ buffer(4) ]],
+                          device const float *borderWidth [[ buffer(5) ]],
+                          device const float *cornerRadius [[ buffer(6) ]],
+                          device const float *originX [[ buffer(7) ]],
+                          device const float *originY [[ buffer(8) ]],
+                          device const float *l_width [[ buffer(9) ]],
+                          device const float *l_height [[ buffer(10) ]],
+                          device const float *borderColor_r1 [[ buffer(11) ]],
+                          device const float *borderColor_g1 [[ buffer(12) ]],
+                          device const float *borderColor_b1 [[ buffer(13) ]],
+                          device const float *borderColor_a1 [[ buffer(14) ]],
+                          device const float *borderWidth1 [[ buffer(15) ]],
+                          device const float *cornerRadius1 [[ buffer(16) ]],
+                          device const float *originX1 [[ buffer(17) ]],
+                          device const float *originY1 [[ buffer(18) ]],
+                          device const float *l_width1 [[ buffer(19) ]],
+                          device const float *l_height1 [[ buffer(20) ]],
+                          device const float *backgroundColor_r [[ buffer(21) ]],
+                          device const float *backgroundColor_g [[ buffer(22) ]],
+                          device const float *backgroundColor_b [[ buffer(23) ]],
+                          device const float *backgroundColor_a [[ buffer(24) ]],
+                          uint2 gid [[ thread_position_in_grid ]])
 {
     sampler displacementMap;
     
@@ -112,7 +116,7 @@ kernel void produce_frame(texture2d<float, access::read> back_Texture [[ texture
     float2 back_origin = float2(*originX, *originY);
     float2 front_origin = float2(*originX1, *originY1);
     
-    float4 background_color = float4(0,0,0,1);
+    float4 background_color = float4(*backgroundColor_r, *backgroundColor_g, *backgroundColor_b, *backgroundColor_a);
     
     if (isInRegionStroke(gid, front_origin, *l_width1, * l_height1, *cornerRadius1, *borderWidth1)) {
         float4 point = borderColor_front;

@@ -24,6 +24,8 @@ final class OverlayRenderer {
     var backLayout : DBVideoLayout
     var frontLayout : DBVideoLayout
     
+    var background_color : UIColor = .red
+    
     var outputSize : CGSize
     
     let back_duration : CMTime
@@ -240,6 +242,15 @@ final class OverlayRenderer {
         l_height = Float(frontLayout.height)
         computeCommandEncoder!.setBytes(&l_height, length: MemoryLayout<Float>.size, index: 20)
         
+        let backgroundColor = components(color: background_color);
+        borderColor_r = Float(backgroundColor![0])
+        computeCommandEncoder!.setBytes(&borderColor_r, length: MemoryLayout<Float>.size, index: 21)
+        borderColor_g = Float(backgroundColor![1])
+        computeCommandEncoder!.setBytes(&borderColor_g, length: MemoryLayout<Float>.size, index: 22)
+        borderColor_b = Float(backgroundColor![2])
+        computeCommandEncoder!.setBytes(&borderColor_b, length: MemoryLayout<Float>.size, index: 23)
+        borderColor_a = Float(backgroundColor![3])
+        computeCommandEncoder!.setBytes(&borderColor_a, length: MemoryLayout<Float>.size, index: 24)
         
         // Encode a threadgroup's execution of a compute function
         computeCommandEncoder!.dispatchThreadgroups(threadGroups, threadsPerThreadgroup: threadGroupCount)
