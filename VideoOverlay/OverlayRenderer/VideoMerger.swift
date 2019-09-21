@@ -39,7 +39,13 @@ class VideoMerger {
     func startRendering() {
         let videoSize = CGSize(width: video_width, height: video_height)
         var transition : OverlayRenderer
-        transition = OverlayRenderer(asset: AVAsset(url: backURL), asset1: AVAsset(url: frontURL), asset2: AVAsset(url: backURL), layout1: backLayout, layout2: frontLayout, videoSize: videoSize)
+        
+        guard let background_sample_url = Bundle.main.url(forResource: "back", withExtension: "mov") else {
+            print("Impossible to find the video.")
+            return
+        }
+        
+        transition = OverlayRenderer(asset: AVAsset(url: background_sample_url), asset1: AVAsset(url: frontURL), asset2: AVAsset(url: backURL), layout1: backLayout, layout2: frontLayout, videoSize: videoSize)
         
         transition.transtionSecondes = transtionSecondes
         

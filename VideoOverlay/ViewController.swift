@@ -20,7 +20,7 @@ class ViewController: UIViewController {
 
     @IBAction func procceed_btn_clicked(_ sender: UIButton) {
         
-        guard let url1 = Bundle.main.url(forResource: "back", withExtension: "mov") else {
+        guard let url1 = Bundle.main.url(forResource: "back3", withExtension: "MOV") else {
             print("Impossible to find the video.")
             return
         }
@@ -33,7 +33,7 @@ class ViewController: UIViewController {
         layout_back.originY = 300
         
         
-        guard let url2 = Bundle.main.url(forResource: "front", withExtension: "mov") else {
+        guard let url2 = Bundle.main.url(forResource: "front3", withExtension: "MOV") else {
             print("Impossible to find the video.")
             return
         }

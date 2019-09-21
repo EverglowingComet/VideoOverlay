@@ -17,9 +17,9 @@ final class OverlayRenderer {
     
     //var background : UIImage
     
-    let back_reader: VideoSeqReader
+    let back_sample_reader: VideoSeqReader
     let front_reader: VideoSeqReader
-    let out_reader: VideoSeqReader
+    let back_reader: VideoSeqReader
     
     var backLayout : DBVideoLayout
     var frontLayout : DBVideoLayout
@@ -48,9 +48,9 @@ final class OverlayRenderer {
     
     
     init(asset: AVAsset, asset1: AVAsset, asset2: AVAsset, layout1: DBVideoLayout, layout2 : DBVideoLayout, videoSize: CGSize) {
-        back_reader = VideoSeqReader(asset: asset)
+        back_sample_reader = VideoSeqReader(asset: asset)
         front_reader = VideoSeqReader(asset: asset1)
-        out_reader = VideoSeqReader(asset: asset2)
+        back_reader = VideoSeqReader(asset: asset2)
         
         back_duration = asset.duration
         front_duration = asset1.duration
@@ -95,9 +95,9 @@ final class OverlayRenderer {
     func next() -> (CVPixelBuffer, CMTime)? {
         let duration = min(back_duration.seconds, front_duration.seconds)
         
-        if let frame = back_reader.next(), let frame1 = front_reader.next(), let frame3 = out_reader.next() {
+        if let frame = back_sample_reader.getSampleBuffer(), let frame1 = front_reader.next(), let frame3 = back_reader.next() {
             
-            let frameRate = back_reader.nominalFrameRate
+            let frameRate = back_sample_reader.nominalFrameRate
             presentationTime = CMTimeMake(value: Int64(frameCount * 600), timescale: Int32(600 * frameRate))
             //let image = frame.filterWith(filters: filters)
             let progress = transtionSecondes / duration
@@ -245,7 +245,6 @@ final class OverlayRenderer {
         let backgroundColor = components(color: background_color);
         borderColor_r = Float(backgroundColor![0])
         computeCommandEncoder!.setBytes(&borderColor_r, length: MemoryLayout<Float>.size, index: 21)
-        
         borderColor_g = Float(backgroundColor![1])
         computeCommandEncoder!.setBytes(&borderColor_g, length: MemoryLayout<Float>.size, index: 22)
         borderColor_b = Float(backgroundColor![2])

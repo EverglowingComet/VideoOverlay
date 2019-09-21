@@ -17,6 +17,7 @@ final class VideoSeqReader {
     let reader: AVAssetReader
     
     let nominalFrameRate: Float
+    var sampleBuffer: CVPixelBuffer?
     
     init(asset: AVAsset) {
         
@@ -47,6 +48,14 @@ final class VideoSeqReader {
             return nil
         })
         
+    }
+    
+    func getSampleBuffer() -> CVPixelBuffer? {
+        if sampleBuffer == nil {
+            sampleBuffer = next()
+        }
+        
+        return sampleBuffer
     }
     
 }
