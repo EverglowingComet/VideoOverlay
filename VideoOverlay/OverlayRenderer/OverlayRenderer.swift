@@ -245,6 +245,7 @@ final class OverlayRenderer {
         let backgroundColor = components(color: background_color);
         borderColor_r = Float(backgroundColor![0])
         computeCommandEncoder!.setBytes(&borderColor_r, length: MemoryLayout<Float>.size, index: 21)
+        
         borderColor_g = Float(backgroundColor![1])
         computeCommandEncoder!.setBytes(&borderColor_g, length: MemoryLayout<Float>.size, index: 22)
         borderColor_b = Float(backgroundColor![2])
