@@ -97,7 +97,7 @@ final class OverlayRenderer {
         
         if let frame = back_sample_reader.getSampleBuffer(), let frame1 = front_reader.next(), let frame3 = back_reader.next() {
             
-            let frameRate = back_sample_reader.nominalFrameRate
+            let frameRate = front_reader.nominalFrameRate
             presentationTime = CMTimeMake(value: Int64(frameCount * 600), timescale: Int32(600 * frameRate))
             //let image = frame.filterWith(filters: filters)
             let progress = transtionSecondes / duration
