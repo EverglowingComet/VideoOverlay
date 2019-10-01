@@ -25,6 +25,18 @@ float4 getPoint(uint2 ngid, texture2d<float, access::read> inTexture, float widt
     return inTexture.read(uint2(x, y));
 }
 
+float4 getPoint1(uint2 ngid, texture2d<float, access::read> inTexture, float width, float height, float o_x, float o_y) {
+    
+    float ratio_w = inTexture.get_width() / width;
+    float ratio_h = inTexture.get_height() / height;
+    float ratio = ratio_w < ratio_h ? ratio_w : ratio_h;
+    
+    uint x = (ngid.x - (o_x - width / 2)) * ratio /*+ ratio == ratio_w ? 0 : (inTexture.get_width() / ratio - width) / 2*/;
+    uint y = (ngid.y - (o_y - height / 2)) * ratio /*+ ratio == ratio_h ? 0 : (inTexture.get_height() / ratio - height) / 2*/;
+    
+    return inTexture.read(uint2(x, inTexture.get_height() - y));
+}
+
 bool isInCircle(uint2 uv, float2 center, float radius) {
     
     return pow((float)uv.x - center.x, 2) + pow((float)uv.y - center.y, 2) < pow(radius,2);
@@ -122,7 +134,7 @@ kernel void produce_frame(texture2d<float, access::read> back_Texture [[ texture
         float4 point = borderColor_front;
         outTexture.write(point, gid);
     } else if (isInRegion(gid, front_origin, *l_width1, * l_height1, *cornerRadius1)) {
-        float4 point = getPoint(gid, front_Texture, *l_width1, *l_height1, *originX1, *originY1);
+        float4 point = getPoint1(gid, front_Texture, *l_width1, *l_height1, *originX1, *originY1);
         outTexture.write(point, gid);
     } else if (isInRegionStroke(gid, back_origin, *l_width, * l_height, *cornerRadius, *borderWidth)) {
         float4 point = borderColor_back;

@@ -13,6 +13,8 @@ import AVKit
 
 final class OverlayRenderer {
     
+    var orientation = VideoMerger.ORI_LAND;
+    
     var strength = 0.5
     
     //var background : UIImage

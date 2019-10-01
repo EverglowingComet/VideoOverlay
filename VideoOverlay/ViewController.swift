@@ -13,6 +13,7 @@ import AVKit
 class ViewController: UIViewController {
 
     @IBOutlet weak var procceed_btn: UIButton!
+    var videoMerger : VideoMerger!
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
@@ -20,7 +21,23 @@ class ViewController: UIViewController {
 
     @IBAction func procceed_btn_clicked(_ sender: UIButton) {
         
-        guard let url1 = Bundle.main.url(forResource: "back3", withExtension: "MOV") else {
+        /*guard let url1 = Bundle.main.url(forResource: "back3", withExtension: "MOV") else {
+            print("Impossible to find the video.")
+            return
+        }
+        
+        guard let url2 = Bundle.main.url(forResource: "front3", withExtension: "MOV") else {
+            print("Impossible to find the video.")
+            return
+        }*/
+        
+        guard let url1 = Bundle.main.url(forResource: "landscape-back", withExtension: "mov") else {
+            print("Impossible to find the video.")
+            return
+        }
+        
+        
+        guard let url2 = Bundle.main.url(forResource: "landscape-front", withExtension: "mov") else {
             print("Impossible to find the video.")
             return
         }
@@ -32,17 +49,11 @@ class ViewController: UIViewController {
         layout_back.originX = 400
         layout_back.originY = 300
         
-        
-        guard let url2 = Bundle.main.url(forResource: "front3", withExtension: "MOV") else {
-            print("Impossible to find the video.")
-            return
-        }
-        
         let layout_front = DBVideoLayout()
         layout_front.width = 360
         layout_front.height = 360
         
-        layout_front.originX = 1300
+        layout_front.originX = 500
         layout_front.originY = 400
         
         // Export to file
@@ -53,8 +64,10 @@ class ViewController: UIViewController {
         let path = docsURL.path.appending("/mergedVideo.mp4")
         let exportURL = URL.init(fileURLWithPath: path)
         
-        let videoMerger = VideoMerger(url1: url1, url2: url2, layout1: layout_back, layout2: layout_front, export: exportURL, vc: self)
+        videoMerger = VideoMerger(url1: url1, url2: url2, layout1: layout_back, layout2: layout_front, export: exportURL, vc: self)
         
+        //videoMerger.orientation = VideoMerger.ORI_PORT
+        videoMerger.orientation = VideoMerger.ORI_LAND
         procceed_btn.isEnabled = false
         
         videoMerger.startRendering()
@@ -86,33 +99,37 @@ class ViewController: UIViewController {
         var mutableCompositionAudioTrack : [AVMutableCompositionTrack] = []
         let totalVideoCompositionInstruction : AVMutableVideoCompositionInstruction = AVMutableVideoCompositionInstruction()
         
-        
         //start merge
         
         let aVideoAsset : AVAsset = AVAsset(url: videoUrl)
         let aAudioAsset : AVAsset = AVAsset(url: audioUrl)
         
+        let audio_count = aAudioAsset.tracks(withMediaType: AVMediaType.audio).count
+        
         mutableCompositionVideoTrack.append(mixComposition.addMutableTrack(withMediaType: AVMediaType.video, preferredTrackID: kCMPersistentTrackID_Invalid)!)
-        mutableCompositionAudioTrack.append( mixComposition.addMutableTrack(withMediaType: AVMediaType.audio, preferredTrackID: kCMPersistentTrackID_Invalid)!)
+        
+        if audio_count > 0 {
+            mutableCompositionAudioTrack.append( mixComposition.addMutableTrack(withMediaType: AVMediaType.audio, preferredTrackID: kCMPersistentTrackID_Invalid)!)
+        }
         
         let aVideoAssetTrack : AVAssetTrack = aVideoAsset.tracks(withMediaType: AVMediaType.video)[0]
-        let aAudioAssetTrack : AVAssetTrack = aAudioAsset.tracks(withMediaType: AVMediaType.audio)[0]
-        
         
         
         do{
             try mutableCompositionVideoTrack[0].insertTimeRange(CMTimeRangeMake(start: CMTime.zero, duration: aVideoAssetTrack.timeRange.duration), of: aVideoAssetTrack, at: CMTime.zero)
             
-            //In my case my audio file is longer then video file so i took videoAsset duration
-            //instead of audioAsset duration
-            
-            try mutableCompositionAudioTrack[0].insertTimeRange(CMTimeRangeMake(start: CMTime.zero, duration: aVideoAssetTrack.timeRange.duration), of: aAudioAssetTrack, at: CMTime.zero)
-            
-            //Use this instead above line if your audiofile and video file's playing durations are same
-            
-            //            try mutableCompositionAudioTrack[0].insertTimeRange(CMTimeRangeMake(kCMTimeZero, aVideoAssetTrack.timeRange.duration), ofTrack: aAudioAssetTrack, atTime: kCMTimeZero)
-            
         }catch{
+            
+        }
+        
+        if audio_count > 0 {
+            let aAudioAssetTrack : AVAssetTrack = aAudioAsset.tracks(withMediaType: AVMediaType.audio)[0]
+            do{
+                try mutableCompositionAudioTrack[0].insertTimeRange(CMTimeRangeMake(start: CMTime.zero, duration: aVideoAssetTrack.timeRange.duration), of: aAudioAssetTrack, at: CMTime.zero)
+                
+            }catch{
+                
+            }
             
         }
         
@@ -121,31 +138,20 @@ class ViewController: UIViewController {
         let mutableVideoComposition : AVMutableVideoComposition = AVMutableVideoComposition()
         mutableVideoComposition.frameDuration = CMTimeMake(value: 1, timescale: 30)
         
-        mutableVideoComposition.renderSize = CGSize(width: 1080,height: 1920)
+        mutableVideoComposition.renderSize = videoMerger.orientation == VideoMerger.ORI_LAND ? CGSize(width: 1920,height: 1080) : CGSize(width: 1080,height: 1920)
         
-        let instruction = AVMutableVideoCompositionInstruction()
-        
-        instruction.timeRange = CMTimeRangeMake(start: CMTime.zero, duration: CMTimeMakeWithSeconds(180, preferredTimescale: 30))
-        
-        // rotate to portrait
-        let transformer = layerInstructionAfterFixingOrientationForAsset(inAsset: aVideoAsset, forTrack: mutableCompositionVideoTrack[0], atTime: CMTime.zero)
-        /*let transformer:AVMutableVideoCompositionLayerInstruction = AVMutableVideoCompositionLayerInstruction(assetTrack: mutableCompositionVideoTrack[0])
-        let t1 = CGAffineTransform(translationX: 0, y: 0);
-        let t2 = t1.rotated(by: CGFloat(Double.pi / 2))
-        
-        transformer.setTransform(t2, at: CMTime.zero)*/
-        instruction.layerInstructions = [transformer]
-        
-        mutableVideoComposition.instructions = [instruction]
-        
-        
-        
-        //        playerItem = AVPlayerItem(asset: mixComposition)
-        //        player = AVPlayer(playerItem: playerItem!)
-        //
-        //
-        //        AVPlayerVC.player = player
-        
+        if videoMerger.orientation == VideoMerger.ORI_PORT {
+            let instruction = AVMutableVideoCompositionInstruction()
+            
+            instruction.timeRange = CMTimeRangeMake(start: CMTime.zero, duration: CMTimeMakeWithSeconds(180, preferredTimescale: 30))
+            
+            // rotate to portrait
+            let transformer = layerInstructionAfterFixingOrientationForAsset(inAsset: aVideoAsset, forTrack: mutableCompositionVideoTrack[0], atTime: CMTime.zero)
+            
+            instruction.layerInstructions = [transformer]
+            
+            mutableVideoComposition.instructions = [instruction]
+        }
         
         
         //find your video on this URl
@@ -154,7 +160,10 @@ class ViewController: UIViewController {
         assetExport.outputFileType = AVFileType.mp4
         assetExport.outputURL = savePathUrl
         assetExport.shouldOptimizeForNetworkUse = true
-        assetExport.videoComposition = mutableVideoComposition
+        
+        if videoMerger.orientation == VideoMerger.ORI_PORT {
+            assetExport.videoComposition = mutableVideoComposition
+        }
         
         
         assetExport.exportAsynchronously { () -> Void in
