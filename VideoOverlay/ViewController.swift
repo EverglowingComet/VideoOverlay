@@ -37,7 +37,7 @@ class ViewController: UIViewController {
         }
         
         
-        guard let url2 = Bundle.main.url(forResource: "landscape-front", withExtension: "mov") else {
+        guard let url2 = Bundle.main.url(forResource: "landscape-circle", withExtension: "mp4") else {
             print("Impossible to find the video.")
             return
         }

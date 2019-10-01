@@ -25,6 +25,7 @@
 		D3B8F0A923425332007E2159 /* landscape-back.mov in Resources */ = {isa = PBXBuildFile; fileRef = D3B8F0A723425332007E2159 /* landscape-back.mov */; };
 		D3B8F0AA23425332007E2159 /* landscape-front.mov in Resources */ = {isa = PBXBuildFile; fileRef = D3B8F0A823425332007E2159 /* landscape-front.mov */; };
 		D3B8F0AC23426409007E2159 /* back_landscape.mov in Resources */ = {isa = PBXBuildFile; fileRef = D3B8F0AB23426408007E2159 /* back_landscape.mov */; };
+		D3B8F0AE2343A1BB007E2159 /* landscape-circle.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = D3B8F0AD2343A1BB007E2159 /* landscape-circle.mp4 */; };
 		D3C0874E2335AADC00D52C5F /* back3.MOV in Resources */ = {isa = PBXBuildFile; fileRef = D3C0874C2335AADC00D52C5F /* back3.MOV */; };
 		D3C0874F2335AADC00D52C5F /* front3.MOV in Resources */ = {isa = PBXBuildFile; fileRef = D3C0874D2335AADC00D52C5F /* front3.MOV */; };
 /* End PBXBuildFile section */
@@ -71,6 +72,7 @@
 		D3B8F0A723425332007E2159 /* landscape-back.mov */ = {isa = PBXFileReference; lastKnownFileType = video.quicktime; path = "landscape-back.mov"; sourceTree = "<group>"; };
 		D3B8F0A823425332007E2159 /* landscape-front.mov */ = {isa = PBXFileReference; lastKnownFileType = video.quicktime; path = "landscape-front.mov"; sourceTree = "<group>"; };
 		D3B8F0AB23426408007E2159 /* back_landscape.mov */ = {isa = PBXFileReference; lastKnownFileType = video.quicktime; path = back_landscape.mov; sourceTree = "<group>"; };
+		D3B8F0AD2343A1BB007E2159 /* landscape-circle.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; path = "landscape-circle.mp4"; sourceTree = "<group>"; };
 		D3C0874C2335AADC00D52C5F /* back3.MOV */ = {isa = PBXFileReference; lastKnownFileType = video.quicktime; path = back3.MOV; sourceTree = "<group>"; };
 		D3C0874D2335AADC00D52C5F /* front3.MOV */ = {isa = PBXFileReference; lastKnownFileType = video.quicktime; path = front3.MOV; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -157,6 +159,7 @@
 		D37EBC7A233194540083F80B /* Videos */ = {
 			isa = PBXGroup;
 			children = (
+				D3B8F0AD2343A1BB007E2159 /* landscape-circle.mp4 */,
 				D3B8F0AB23426408007E2159 /* back_landscape.mov */,
 				D3B8F0A723425332007E2159 /* landscape-back.mov */,
 				D3B8F0A823425332007E2159 /* landscape-front.mov */,
@@ -294,6 +297,7 @@
 			files = (
 				D37EBC572331931E0083F80B /* LaunchScreen.storyboard in Resources */,
 				D37EBC7F233194960083F80B /* back.mov in Resources */,
+				D3B8F0AE2343A1BB007E2159 /* landscape-circle.mp4 in Resources */,
 				D3B8F0AA23425332007E2159 /* landscape-front.mov in Resources */,
 				D3C0874F2335AADC00D52C5F /* front3.MOV in Resources */,
 				D3B8F0A923425332007E2159 /* landscape-back.mov in Resources */,
