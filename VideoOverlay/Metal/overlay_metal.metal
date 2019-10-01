@@ -22,6 +22,12 @@ float4 getPoint(uint2 ngid, texture2d<float, access::read> inTexture, float widt
     uint x = (ngid.x - (o_x - width / 2)) * ratio /*+ ratio == ratio_w ? 0 : (inTexture.get_width() / ratio - width) / 2*/;
     uint y = (ngid.y - (o_y - height / 2)) * ratio /*+ ratio == ratio_h ? 0 : (inTexture.get_height() / ratio - height) / 2*/;
     
+    if (ratio == ratio_w) {
+        y += (inTexture.get_height() - height * ratio) / 2;
+    } else {
+        x += (inTexture.get_width() - width * ratio) / 2;
+    }
+    
     return inTexture.read(uint2(x, y));
 }
 
