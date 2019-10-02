@@ -9,4 +9,6 @@ class DBVideoLayout {
     var originY : CGFloat = 10
     var width : CGFloat = 200
     var height : CGFloat = 200
+    
+    var reversed : Bool = false
 }

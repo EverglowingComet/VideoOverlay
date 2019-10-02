@@ -31,13 +31,13 @@ class ViewController: UIViewController {
             return
         }*/
         
-        guard let url1 = Bundle.main.url(forResource: "landscape-back", withExtension: "mov") else {
+        guard let url1 = Bundle.main.url(forResource: "back-landscape-right", withExtension: "mov") else {
             print("Impossible to find the video.")
             return
         }
         
         
-        guard let url2 = Bundle.main.url(forResource: "landscape-circle", withExtension: "mp4") else {
+        guard let url2 = Bundle.main.url(forResource: "front-landscape-right", withExtension: "mov") else {
             print("Impossible to find the video.")
             return
         }
@@ -49,12 +49,15 @@ class ViewController: UIViewController {
         layout_back.originX = 400
         layout_back.originY = 300
         
+        layout_back.reversed = true
+        
         let layout_front = DBVideoLayout()
         layout_front.width = 360
         layout_front.height = 360
         
         layout_front.originX = 500
         layout_front.originY = 400
+        layout_back.reversed = true
         
         // Export to file
         let dirPaths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)

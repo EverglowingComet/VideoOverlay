@@ -254,6 +254,11 @@ final class OverlayRenderer {
         borderColor_a = Float(backgroundColor![3])
         computeCommandEncoder!.setBytes(&borderColor_a, length: MemoryLayout<Float>.size, index: 24)
         
+        var back_reverse = backLayout.reversed
+        computeCommandEncoder!.setBytes(&back_reverse, length: MemoryLayout<Bool>.size, index: 25)
+        var front_reverse = frontLayout.reversed
+        computeCommandEncoder!.setBytes(&front_reverse, length: MemoryLayout<Bool>.size, index: 26)
+        
         // Encode a threadgroup's execution of a compute function
         computeCommandEncoder!.dispatchThreadgroups(threadGroups, threadsPerThreadgroup: threadGroupCount)
         
